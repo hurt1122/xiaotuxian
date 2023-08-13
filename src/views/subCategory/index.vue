@@ -1,0 +1,124 @@
+<script setup>
+import { getCategoryFilter, getSubCategory } from '@/apis/category.js'
+import { ref } from 'vue'
+import { useRoute } from 'vue-router'
+import Goodsitem from '@/views/home/components/Goodsitem.vue'
+
+const route = useRoute()
+
+const catgoryDate = ref('')
+const getDate = async () => {
+  const res = await getCategoryFilter(route.params.id)
+  catgoryDate.value = res.data.result
+  console.log(catgoryDate.value);
+}
+getDate()
+
+const goodsList = ref([''])
+const reqDate = ref({
+  categoryId: route.params.id,
+  page: 1,
+  pageSize: 20,
+  sortField: 'publishTime'
+})
+const getGoodsList = async () => {
+  const res = await getSubCategory(reqDate)
+  goodsList.value = res.data.result.items
+  console.log(goodsList.value);
+}
+getGoodsList()
+
+const tabechange = () => {
+  reqDate.value.page = 1
+  getGoodsList()
+}
+
+const load = async () => {
+  reqDate.value.page++
+  const res = await getSubCategory(reqDate.value)
+  goodsList.value = [...goodsList.value, ...res.data.result.items]
+}
+</script>
+
+<template>
+  <div class="container ">
+    <!-- 面包屑 -->
+    <div class="bread-container">
+      <el-breadcrumb separator=">">
+        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: `/catgory/${catgoryDate.parentId}` }">{{ catgoryDate.parentName }}
+        </el-breadcrumb-item>
+        <el-breadcrumb-item>居家生活用品</el-breadcrumb-item>
+      </el-breadcrumb>
+    </div>
+    <div class="sub-container">
+      <el-tabs v-model="reqDate.sortField" @tab-change="tabechange">
+        <el-tab-pane label="最新商品" name="publishTime"></el-tab-pane>
+        <el-tab-pane label="最高人气" name="orderNum"></el-tab-pane>
+        <el-tab-pane label="评论最多" name="evaluateNum"></el-tab-pane>
+      </el-tabs>
+      <div class="body" v-infinite-scroll="load">
+        <Goodsitem v-for="goods in goodsList" :key="goods.id" :goods="goods"></Goodsitem>
+      </div>
+    </div>
+  </div>
+</template>
+
+
+
+<style lang="scss" scoped>
+.bread-container {
+  padding: 25px 0;
+  color: #666;
+}
+
+.sub-container {
+  padding: 20px 10px;
+  background-color: #fff;
+
+  .body {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 10px;
+  }
+
+  .goods-item {
+    display: block;
+    width: 220px;
+    margin-right: 20px;
+    padding: 20px 30px;
+    text-align: center;
+
+    img {
+      width: 160px;
+      height: 160px;
+    }
+
+    p {
+      padding-top: 10px;
+    }
+
+    .name {
+      font-size: 16px;
+    }
+
+    .desc {
+      color: #999;
+      height: 29px;
+    }
+
+    .price {
+      color: $priceColor;
+      font-size: 20px;
+    }
+  }
+
+  .pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+
+
+}
+</style>
