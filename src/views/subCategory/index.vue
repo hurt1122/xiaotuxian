@@ -33,10 +33,14 @@ const tabechange = () => {
   getGoodsList()
 }
 
+const disabled = ref(false)
 const load = async () => {
   reqDate.value.page++
   const res = await getSubCategory(reqDate.value)
   goodsList.value = [...goodsList.value, ...res.data.result.items]
+  if (res.data.result.items.length === 0) {
+    disabled.value = true
+  }
 }
 </script>
 
@@ -57,7 +61,7 @@ const load = async () => {
         <el-tab-pane label="最高人气" name="orderNum"></el-tab-pane>
         <el-tab-pane label="评论最多" name="evaluateNum"></el-tab-pane>
       </el-tabs>
-      <div class="body" v-infinite-scroll="load">
+      <div class="body" v-infinite-scroll="load" :infinite-scroll-disabled="disabled">
         <Goodsitem v-for="goods in goodsList" :key="goods.id" :goods="goods"></Goodsitem>
       </div>
     </div>
